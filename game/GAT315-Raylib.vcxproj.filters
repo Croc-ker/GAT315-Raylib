@@ -26,7 +26,7 @@
     <ClInclude Include="world.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scene.h">
+    <ClInclude Include="integrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
