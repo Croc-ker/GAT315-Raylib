@@ -15,6 +15,12 @@
     <ClCompile Include="world.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="body.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="force.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="body.h">
@@ -27,6 +33,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="integrator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="force.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
