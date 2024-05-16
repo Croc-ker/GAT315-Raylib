@@ -1,4 +1,4 @@
 #pragma once
 typedef struct ncBody ncBody;
 
-void ApplyGravitation(ncBody* bodies, float strength);
+void ApplyGravity(ncBody* bodies, float strength);

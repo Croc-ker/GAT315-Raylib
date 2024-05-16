@@ -1,7 +1,7 @@
 #include "force.h"
 #include "body.h"
 
-void ApplyGravitation(ncBody* bodies, float strength) {
+void ApplyGravity(ncBody* bodies, float strength) {
 	for (ncBody* body1 = bodies; body1; body1 = body1->next) {
 		for (ncBody* body2 = bodies; body2; body2 = body2->next) {
 			if (body1 == body2) continue;

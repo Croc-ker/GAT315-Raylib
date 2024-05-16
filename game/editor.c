@@ -1,4 +1,6 @@
 #include "editor.h"
+#include "body.h"
+#include "render.h"
 #define RAYGUI_IMPLEMENTATION
 #include "../../raygui/src/raygui.h"
 
@@ -9,33 +11,70 @@ Rectangle editorRect;
 ncEditorData_t ncEditorData;
 
 Vector2 anchor01 = { 900, 10 };
+Texture2D cursorTexture;
+
 bool WindowBox000Active = true;
 
 void InitEditor() {
-	GuiLoadStyle("raygui/styles/lavanda/style_lavanda.rgs");
+    GuiLoadStyle("raygui/styles/lavanda/style_lavanda.rgs");
 
-	ncEditorData.MassMinSliderValue = 0.1f;
-	ncEditorData.MassMaxSliderValue = 1;
-	ncEditorData.GravitySliderValue = 0;
-	ncEditorData.GravitationSliderValue = 2;
-	ncEditorData.BodyDampingValue = 5;
-	ncEditorData.BodyTypeSelected = DYNAMIC;
+    Image i = LoadImage("resources/reticle.png");
+    cursorTexture = LoadTextureFromImage(i);
+    UnloadImage(i);
+    HideCursor();
+
+    ncEditorData.anchor01 = (Vector2){ 808, 24 };
+    ncEditorData.anchor02 = (Vector2){ 816, 72 };
+    ncEditorData.anchor03 = (Vector2){ 816, 264 };
+
+    ncEditorData.EditorBoxActive = true;
+    ncEditorData.BodyTypeEditMode = false;
+    ncEditorData.DampingValue = 0.0f;
+    ncEditorData.GravitationValue = 0.0f;
+    ncEditorData.BodyTypeActive = 0;
+    ncEditorData.GravityScaleValue = 0.0f;
+    ncEditorData.MassMaxValue = 10.0f;
+    ncEditorData.MassMinValue = 0.5f;
+
+    editorRect = (Rectangle){ ncEditorData.anchor01.x + 0, ncEditorData.anchor01.y + 0, 304, 616 };
 }
 
 void UpdateEditor(Vector2 position) {
-	//
+    //
 }
 
-void DrawEditor() {
-	if (ncEditorData.BodyTypeEditMode) GuiLock();
-	if (WindowBox000Active) {
-		WindowBox000Active = !GuiWindowBox((Rectangle) { anchor01.x + 0, anchor01.y + 0, 288, 696 }, "SAMPLE TEXT");
-		GuiSliderBar((Rectangle) { anchor01.x + 80, anchor01.y + 48, 120, 16 }, "Mass Min", NULL, & ncEditorData.MassMinSliderValue, 0, 10);
-		GuiSliderBar((Rectangle) { anchor01.x + 80, anchor01.y + 72, 120, 16  }, "Mass Max", NULL, & ncEditorData.MassMaxSliderValue, 0, 10);
-		GuiSliderBar((Rectangle) { anchor01.x + 80, anchor01.y + 120, 120, 16 }, "Gravity", NULL, & ncEditorData.GravitySliderValue, 0, 100);
-		GuiSliderBar((Rectangle) { anchor01.x + 80, anchor01.y + 96, 120, 16  }, "Gravitation", NULL, & ncEditorData.GravitationSliderValue, 0, 1000);
-		GuiSliderBar((Rectangle) { anchor01.x + 80, anchor01.y + 144, 120, 16 }, "Body Damping", NULL, & ncEditorData.BodyDampingValue, 0, 100);
-		if (GuiDropdownBox((Rectangle) { anchor01.x + 24, anchor01.y + 184, 176, 24 }, "STATIC;KINEMATIC;DYNAMIC", & ncEditorData.BodyTypeSelected, ncEditorData.BodyTypeEditMode)) ncEditorData.BodyTypeEditMode = !ncEditorData.BodyTypeEditMode;
-		GuiUnlock();
-	}
+void DrawEditor(Vector2 position) {
+    if (ncEditorData.BodyTypeEditMode) GuiLock();
+
+    if (ncEditorData.EditorBoxActive) {
+        ncEditorData.EditorBoxActive = !GuiWindowBox((Rectangle) { ncEditorData.anchor01.x + -16, ncEditorData.anchor01.y + 0, 288, 656 }, "Editor");
+        GuiGroupBox((Rectangle) { ncEditorData.anchor02.x + 0, ncEditorData.anchor02.y + 0, 232, 168 }, "Body");
+        GuiSliderBar((Rectangle) { ncEditorData.anchor02.x + 80, ncEditorData.anchor02.y + 64, 120, 16 }, "Mass Min", NULL, & ncEditorData.MassMinValue, 0.1, 10);
+        GuiSliderBar((Rectangle) { ncEditorData.anchor02.x + 80, ncEditorData.anchor02.y + 88, 120, 16 }, "Mass Max", NULL, & ncEditorData.MassMaxValue, 0.1, 10);
+        GuiSliderBar((Rectangle) { ncEditorData.anchor02.x + 80, ncEditorData.anchor02.y + 112, 120, 16 }, "Damping", NULL, & ncEditorData.DampingValue, 0, 10);
+        GuiSliderBar((Rectangle) { ncEditorData.anchor02.x + 80, ncEditorData.anchor02.y + 136, 120, 16 }, "Gravity Scale", NULL, & ncEditorData.GravityScaleValue, 0, 20);
+        GuiGroupBox((Rectangle) { ncEditorData.anchor03.x + 0, ncEditorData.anchor03.y + 0, 232, 96 }, "World");
+        GuiSliderBar((Rectangle) { ncEditorData.anchor03.x + 80, ncEditorData.anchor03.y + 16, 120, 16 }, "Gravitation", NULL, & ncEditorData.GravitationValue, 0, 20);
+        if (GuiDropdownBox((Rectangle) { ncEditorData.anchor02.x + 64, ncEditorData.anchor02.y + 24, 120, 24 }, "Dynamic;Kinematic;Static", & ncEditorData.BodyTypeActive, ncEditorData.BodyTypeEditMode)) ncEditorData.BodyTypeEditMode = !ncEditorData.BodyTypeEditMode;
+    }
+
+    DrawTexture(cursorTexture, (int)position.x - cursorTexture.width / 2, (int)position.y - cursorTexture.height / 2, GREEN);
+
+    GuiUnlock();
+}
+
+ncBody* GetBodyIntersect(ncBody* bodies, Vector2 position) {
+    for (ncBody* body = bodies; body; body = body->next) {
+        Vector2 screen = ConvertWorldToScreen(body->position);
+        if (CheckCollisionPointCircle(position, screen, ConvertWorldToPixel(body->mass * 0.5f))) {
+            return body;
+        }
+    }
+
+    return NULL;
+}
+
+void DrawLineBodyToPosition(ncBody* body, Vector2 position) {
+    Vector2 screen = ConvertWorldToScreen(body->position);
+    DrawLine((int)screen.x, (int)screen.y, (int)position.x - cursorTexture.width / 2, (int)position.y - cursorTexture.height / 2, YELLOW);
 }

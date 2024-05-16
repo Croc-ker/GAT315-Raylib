@@ -2,10 +2,10 @@
 #include "raylib.h"
 #include "raymath.h"
 
-typedef enum ncBodyType {
-	STATIC,
+typedef enum {
+	DYNAMIC,
 	KINEMATIC,
-	DYNAMIC
+	STATIC
 } ncBodyType;
 
 typedef enum {
@@ -14,19 +14,22 @@ typedef enum {
 	VELOCITY
 } ncForceMode;
 
-typedef struct ncBody
-{
+//struct for just values
+typedef struct ncBody {
 	ncBodyType type;
 
+	//acceleration -> velocity -> position
 	Vector2 position;
 	Vector2 velocity;
 	Vector2 acceleration;
 	Vector2 force;
 
 	float mass;
-	float inverseMass;
+	float inverseMass; // 1/mass (static = 0)
 	float gravityScale;
 	float damping;
+
+	float restitution;
 
 	Color color;
 
@@ -34,10 +37,7 @@ typedef struct ncBody
 	struct ncBody* prev;
 } ncBody;
 
-
-
-inline void ApplyForce(ncBody* body, Vector2 force, ncForceMode mode)
-{
+inline void ApplyForce(ncBody* body, Vector2 force, ncForceMode mode) {
 	if (body->type != DYNAMIC) return;
 
 	switch (mode) {
@@ -45,6 +45,7 @@ inline void ApplyForce(ncBody* body, Vector2 force, ncForceMode mode)
 		body->force = Vector2Add(body->force, force);
 		break;
 	case IMPULSE:
+		//applies a sudden change in momentum
 		body->velocity = Vector2Scale(force, body->inverseMass);
 		break;
 	case VELOCITY:
@@ -53,8 +54,7 @@ inline void ApplyForce(ncBody* body, Vector2 force, ncForceMode mode)
 	}
 }
 
-inline void ClearForce(ncBody* body)
-{
+inline void ClearForce(ncBody* body) {
 	body->force = Vector2Zero();
 }
 
