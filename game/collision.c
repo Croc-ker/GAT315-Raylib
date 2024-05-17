@@ -54,8 +54,29 @@ ncContact_t* GenerateContact(ncBody* body1, ncBody* body2) {
 }
 
 void SeparateContacts(ncContact_t* contacts) {
+	for (ncContact_t* contact = contacts; contact; contact = contact->next)
+	{
+		float totalInverseMass = contact->body1->inverseMass + contact->body2->inverseMass;
+		Vector2 seperation = Vector2Scale(contact->normal, contact->depth / totalInverseMass);
 
+		contact->body1->position = Vector2Add(contact->body1->position, Vector2Scale(seperation, contact->body1->inverseMass));
+		contact->body2->position = Vector2Add(contact->body2->position, Vector2Scale(seperation, -contact->body1->inverseMass));
+	}
 }
 void ResolveContacts(ncContact_t* contacts) {
+	for (ncContact_t* contact = contacts; contact; contact = contact->next)
+	{
+		Vector2 rv = Vector2Subtract(contact->body1->velocity, contact->body2->velocity);
+		float normalV = Vector2DotProduct(rv, contact->normal);
 
+		if (normalV > 0) continue;
+
+		float tim = contact->body1->inverseMass + contact->body2->inverseMass;
+		float impulseMagnitude = -(1 + contact->restitution) * normalV / tim;
+
+		Vector2 impulse = Vector2Scale(contact->normal, impulseMagnitude);
+
+		ApplyForce(contact->body1, impulse, IMPULSE);
+		ApplyForce(contact->body2, Vector2Negate(impulse), IMPULSE);
+	}
 }

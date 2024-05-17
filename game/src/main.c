@@ -73,6 +73,8 @@ int main(void) {
 		//collision
 		ncContact_t* contacts = NULL;
 		CreateContacts(ncBodies, &contacts);
+		SeparateContacts(contacts);
+		ResolveContacts(contacts);
 
 		//render
 		BeginDrawing();
