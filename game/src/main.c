@@ -49,6 +49,7 @@ int main(void) {
 			body->damping = ncEditorData.DampingValue;
 			body->gravityScale = ncEditorData.GravityScaleValue;
 			body->color = PURPLE;
+			body->restitution = ncEditorData.RestitutionValue;
 			AddBody(body);
 		}
 
