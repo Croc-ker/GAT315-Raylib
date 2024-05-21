@@ -64,9 +64,9 @@ int main(void) {
 			}
 		}
 
+		ncContact_t* contacts = NULL;
 		timeAccumulator += dt;
-			ncContact_t* contacts = NULL;
-		while(timeAccumulator >= fixedTimestep) {
+		while (timeAccumulator >= fixedTimestep) {
 			timeAccumulator -= fixedTimestep;
 
 			//apply force
@@ -79,7 +79,6 @@ int main(void) {
 			}
 
 			//collision
-			contacts = NULL;
 			CreateContacts(ncBodies, &contacts);
 			SeparateContacts(contacts);
 			ResolveContacts(contacts);

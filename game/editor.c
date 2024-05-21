@@ -10,9 +10,9 @@ Rectangle editorRect;
 
 ncEditorData_t ncEditorData;
 
-Vector2 anchor01 = { 808, 24 };
-Vector2 anchor02 = { 840, 72 };
-Vector2 anchor03 = { 840, 336 };
+Vector2 anchor01 = { 800, 24 };
+Vector2 anchor02 = { 820, 72 };
+Vector2 anchor03 = { 820, 336 };
 Texture2D cursorTexture;
 
 bool WindowBox000Active = true;
@@ -57,15 +57,15 @@ void DrawEditor(Vector2 position) {
 
     if (ncEditorData.EditorBoxActive) {
         ncEditorData.EditorBoxActive = !GuiWindowBox((Rectangle) { ncEditorData.anchor01.x + -16, ncEditorData.anchor01.y + 0, 288, 656 }, "Editor");
-        GuiGroupBox((Rectangle) { anchor02.x + 0, anchor02.y + 0, 240, 240 }, "Body");
+        GuiGroupBox((Rectangle) { anchor02.x + -10, anchor02.y + 0, 250, 240 }, "Body");
         if (GuiDropdownBox((Rectangle) { anchor02.x + 40, anchor02.y + 24, 160, 24 }, "DYNAMIC;STATIC;KINEMATIC", & ncEditorData.BodyTypeActive, ncEditorData.BodyTypeEditMode)) ncEditorData.BodyTypeEditMode = !ncEditorData.BodyTypeEditMode;
         GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 56, 120, 16 }, "Mass", NULL, & ncEditorData.MassValue, 0.5, 10);
-        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 56, 120, 16 }, "Damping", NULL, & ncEditorData.DampingValue, 0, 10);
-        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 80, 120, 16 }, "Gravity Scale", NULL, & ncEditorData.GravityScaleValue, 0, 20);
-        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 104, 120, 16 }, "Stiffness", NULL, & ncEditorData.StiffnessValue, 0, 10);
-        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 128, 120, 16 }, "Restitution", NULL, & ncEditorData.RestitutionValue, 0, 10);
+        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 80, 120, 16 }, "Damping", NULL, & ncEditorData.DampingValue, 0, 10);
+        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 104, 120, 16}, "Gravity Scale", NULL, & ncEditorData.GravityScaleValue, 0, 20);
+        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 128, 120, 16 }, "Stiffness", NULL, & ncEditorData.StiffnessValue, 0, 10);
+        GuiSliderBar((Rectangle) { anchor02.x + 80, anchor02.y + 152, 120, 16 }, "Restitution", NULL, & ncEditorData.RestitutionValue, 0, 10);
 
-        GuiGroupBox((Rectangle) { anchor03.x + 0, anchor03.y + 0, 240, 288 }, "World");
+        GuiGroupBox((Rectangle) { anchor03.x + -10, anchor03.y + 0, 250, 288 }, "World");
         GuiSlider((Rectangle) { anchor03.x + 80, anchor03.y + 32, 120, 16 }, "Gravity", NULL, & ncEditorData.GravityValue, -1, 1);
         GuiSliderBar((Rectangle) { anchor03.x + 80, anchor03.y + 56, 120, 16 }, "Gravitation", NULL, & ncEditorData.GravitationValue, -10, 10);
         GuiSliderBar((Rectangle) { anchor03.x + 80, anchor03.y + 80, 120, 16 }, "Timestep", NULL, & ncEditorData.TimestepValue, 0, 2);
