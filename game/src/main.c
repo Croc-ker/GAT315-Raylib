@@ -22,6 +22,8 @@ int main(void) {
 	InitWindow(1280, 720, "Physics Engine");
 	InitEditor();
 	SetTargetFPS(60);
+	float fixedTimestep = 1.0f / 60.0f;
+	float timeAccumulator = 0.0f;
 
 	while (!WindowShouldClose()) {
 		//update
@@ -45,7 +47,7 @@ int main(void) {
 
 		//create body
 		if ((IsMouseButtonPressed(0))) {
-			ncBody* body = CreateBody(ConvertScreenToWorld(position), ncEditorData.MassMinValue, ncEditorData.BodyTypeActive);
+			ncBody* body = CreateBody(ConvertScreenToWorld(position), ncEditorData.MassValue, ncEditorData.BodyTypeActive);
 			body->damping = ncEditorData.DampingValue;
 			body->gravityScale = ncEditorData.GravityScaleValue;
 			body->color = PURPLE;
@@ -62,20 +64,26 @@ int main(void) {
 			}
 		}
 
-		//apply force
-		ApplyGravity(ncBodies, ncEditorData.GravitationValue);
-		ApplySpringForce(ncSprings);
+		timeAccumulator += dt;
+		while(timeAccumulator >= fixedTimestep) {
+			timeAccumulator -= fixedTimestep;
 
-		//update bodies
-		for (ncBody* body = ncBodies; body; body = body->next) {
-			Step(body, dt);
+			//apply force
+			ApplyGravitation(ncBodies, ncEditorData.GravitationValue);
+			ApplySpringForce(ncSprings);
+
+			//update bodies
+			for (ncBody* body = ncBodies; body; body = body->next) {
+				Step(body, fixedTimestep);
+			}
+
+			//collision
+			ncContact_t* contacts = NULL;
+			CreateContacts(ncBodies, &contacts);
+			SeparateContacts(contacts);
+			ResolveContacts(contacts);
+
 		}
-
-		//collision
-		ncContact_t* contacts = NULL;
-		CreateContacts(ncBodies, &contacts);
-		SeparateContacts(contacts);
-		ResolveContacts(contacts);
 
 		//render
 		BeginDrawing();
