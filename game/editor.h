@@ -2,21 +2,47 @@
 #include "raylib.h"
 
 typedef struct ncEditorData {
-    Vector2 anchor01;
-    Vector2 anchor02;
-    Vector2 anchor03;
+	Vector2 anchor01;
+	Vector2 anchor02;
+	Vector2 anchor03;
 
-    bool EditorBoxActive;
-    bool BodyTypeEditMode;
-    int BodyTypeActive;
-    float DampingValue;
-    float MassValue;
-    float GravityScaleValue;
-    float GravityValue;
-    float GravitationValue;
-    float RestitutionValue;
-    float StiffnessValue;
-    float TimestepValue;
+	//editor
+	bool EditorBoxActive;
+	bool MouseOnEditor;
+
+	//body
+	bool BodyTypeEditMode;
+	int BodyTypeActive;
+	float MassValue;
+	float DampingValue;
+	float GravityScaleValue;
+	float RestitutionValue;
+	float StiffnessValue;
+
+	//world
+	float GravityValue;
+	float GravitationValue;
+	float TimestepValue;
+
+	//display
+	bool ResetPressed;
+	bool MassDisplayEditMode;
+	int MassDisplayValue;
+	bool DampingDisplayEditMode;
+	int DampingDisplayValue;
+	bool GravityScaleDisplayEditMode;
+	int GravityScaleDisplayValue;
+	bool StiffnessDisplayEditMode;
+	int StiffnessDisplayValue;
+	bool RestitutionDisplayEditMode;
+	int RestitutionDisplayValue;
+	bool GravityDisplayEditMode;
+	int GravityDisplayValue;
+	bool GravitationDisplayEditMode;
+	int GravitationDisplayValue;
+	bool TimestepDisplayEditMode;
+	int TimestepDisplayValue;
+	bool SimulateChecked;
 } ncEditorData_t;
 
 extern ncEditorData_t ncEditorData;

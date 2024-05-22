@@ -43,7 +43,9 @@ void DestroySpring(ncSpring_t* s) {
 }
 
 void DestroyAllSprings() {
-
+	for(ncSpring_t* spring = ncSprings; spring; spring = spring->next) {
+		DestroySpring(spring);
+	}
 }
 
 void ApplySpringForce(ncSpring_t* springs) {

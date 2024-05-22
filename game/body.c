@@ -14,3 +14,4 @@ void Step(ncBody* body, float time) {
 
 	ClearForce(body);
 }
+

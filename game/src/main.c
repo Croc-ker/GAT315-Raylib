@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <mathf.h>
 
 int main(void) {
 	ncBody* selectedBody = NULL;
@@ -22,16 +23,17 @@ int main(void) {
 	InitWindow(1280, 720, "Physics Engine");
 	InitEditor();
 	SetTargetFPS(60);
-	float fixedTimestep = 1.0f / 60.0f;
+	float fixedTimestep = 1.0f / ncEditorData.TimestepValue;
 	float timeAccumulator = 0.0f;
 
 	while (!WindowShouldClose()) {
 		//update
 		float dt = GetFrameTime();
 		float fps = (float)GetFPS();
+		fixedTimestep = 1.0f / ncEditorData.TimestepValue;
 
 		//initialize world
-		ncGravity = (Vector2){ 0, -1 };
+		ncGravity = (Vector2){ 0, -ncEditorData.GravityValue };
 
 		Vector2 position = GetMousePosition();
 		ncScreenZoom -= GetMouseWheelMove() * 0.2f;
@@ -39,35 +41,57 @@ int main(void) {
 
 		UpdateEditor(position);
 
+		ncGravity = (Vector2){ 0, -ncEditorData.GravityValue };
+
+		if (IsKeyPressed(KEY_E)) ncEditorData.EditorBoxActive = !ncEditorData.EditorBoxActive;
+		if (ncEditorData.ResetPressed) {
+			DestroyAllBodies();
+			DestroyAllSprings();
+			selectedBody = NULL;
+			connectBody = NULL;
+		}
+
 		selectedBody = GetBodyIntersect(ncBodies, position);
 		if (selectedBody) {
 			Vector2 screen = ConvertWorldToScreen(selectedBody->position);
 			DrawCircleLines(screen.x, screen.y, ConvertWorldToPixel(selectedBody->mass * 0.5f) + 5, YELLOW);
 		}
+		if (!ncEditorData.MouseOnEditor) {
+			//create body
+			if ((IsMouseButtonPressed(0))) {
+				ncBody* body = CreateBody(ConvertScreenToWorld(position), ncEditorData.MassValue, ncEditorData.BodyTypeActive);
+				body->damping = ncEditorData.DampingValue;
+				body->gravityScale = ncEditorData.GravityScaleValue;
+				body->color = PURPLE;
+				body->restitution = ncEditorData.RestitutionValue;
+				AddBody(body);
+			}
 
-		//create body
-		if ((IsMouseButtonPressed(0))) {
-			ncBody* body = CreateBody(ConvertScreenToWorld(position), ncEditorData.MassValue, ncEditorData.BodyTypeActive);
-			body->damping = ncEditorData.DampingValue;
-			body->gravityScale = ncEditorData.GravityScaleValue;
-			body->color = PURPLE;
-			body->restitution = ncEditorData.RestitutionValue;
-			AddBody(body);
-		}
+			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && selectedBody) connectBody = selectedBody;
+			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && connectBody) DrawLineBodyToPosition(connectBody, position);
+			if (IsKeyDown(KEY_SPACE) && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && connectBody) {
 
-		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && selectedBody) connectBody = selectedBody;
-		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && connectBody) DrawLineBodyToPosition(connectBody, position);
-		if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && connectBody) {
-			if (selectedBody && selectedBody != connectBody) {
-				ncSpring_t* spring = CreateSpring(connectBody, selectedBody, Vector2Distance(connectBody->position, selectedBody->position), 20);
-				AddSpring(spring);
+				Vector2 spring = Vector2Subtract(ConvertScreenToWorld(position), connectBody->position);
+				Vector2 damping = Vector2Scale(connectBody->velocity, -ncEditorData.DampingValue);
+				spring = Vector2Add(spring, damping);
+
+				ApplyForce(connectBody, spring, FORCE);
+
+			}
+			if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && connectBody) {
+				if (selectedBody && selectedBody != connectBody) {
+					ncSpring_t* spring = CreateSpring(connectBody, selectedBody, Vector2Distance(connectBody->position, selectedBody->position), ncEditorData.StiffnessValue);
+					AddSpring(spring);
+				}
 			}
 		}
+
 
 		ncContact_t* contacts = NULL;
 		timeAccumulator += dt;
 		while (timeAccumulator >= fixedTimestep) {
 			timeAccumulator -= fixedTimestep;
+			if (!ncEditorData.SimulateChecked) continue;
 
 			//apply force
 			ApplyGravitation(ncBodies, ncEditorData.GravitationValue);
@@ -82,7 +106,6 @@ int main(void) {
 			CreateContacts(ncBodies, &contacts);
 			SeparateContacts(contacts);
 			ResolveContacts(contacts);
-
 		}
 
 		//render
@@ -90,9 +113,7 @@ int main(void) {
 		ClearBackground(BLACK);
 
 
-		//stats
-		DrawText(TextFormat("FPS: %.2f (%.2fms)", fps, 1000 / fps), 10, 10, 20, BLUE);
-		DrawText(TextFormat("Frame: %.4f", dt), 10, 30, 20, PINK);
+
 
 		//draw springs
 		for (ncSpring_t* spring = ncSprings; spring; spring = spring->next) {
@@ -115,9 +136,11 @@ int main(void) {
 
 		DrawEditor(position);
 
+		//stats
+		DrawText(TextFormat("FPS: %.2f (%.2fms)", fps, 1000 / fps), 10, 10, 20, PINK);
+		DrawText(TextFormat("Frame: %.4f", dt), 10, 30, 20, PURPLE);
 		EndDrawing();
 	}
-
 	CloseWindow();
 	free(ncBodies);
 
